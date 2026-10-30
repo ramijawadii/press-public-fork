@@ -1096,6 +1096,11 @@ def redirect_to(location):
 def get_frappe_io_auth_url() -> str | None:
 	"""Get auth url for oauth login with frappe.io."""
 
+	# hooks.py calls this at import time; `bench build` imports hooks without a site or database
+	# connection, where no login provider can be configured anyway.
+	if not getattr(frappe.local, "site", None) or not getattr(frappe.local, "db", None):
+		return None
+
 	try:
 		provider = frappe.get_last_doc(
 			"Social Login Key", filters={"enable_social_login": 1, "provider_name": "Frappe"}
